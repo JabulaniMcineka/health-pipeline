@@ -1,0 +1,169 @@
+version: 2
+
+# =============================================================================
+# Sources
+# =============================================================================
+sources:
+  - name: health
+    description: "Raw health insurance tables loaded from CSV/Parquet sources."
+    schema: health
+    tables:
+      - name: dim_clients
+        description: "Client master data from clients.csv"
+        columns:
+          - name: client_key
+            tests: [unique, not_null]
+          - name: client_id
+            tests: [unique, not_null]
+
+      - name: dim_products
+        description: "Product catalogue from health_products.txt"
+        columns:
+          - name: product_key
+            tests: [unique, not_null]
+          - name: product_code
+            tests: [unique, not_null]
+
+      - name: fct_health_lapses
+        description: "Lapse events from health_lapses.parquet (converted via Lambda)"
+        columns:
+          - name: lapse_id
+            tests: [unique, not_null]
+          - name: client_key
+            tests: [not_null]
+          - name: product_key
+            tests: [not_null]
+          - name: lapse_date_key
+            tests: [not_null]
+          - name: lapse_status
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['LAPSED', 'REINSTATED', 'CANCELLED', 'PENDING']
+
+      - name: dim_date
+        description: "Calendar dimension table"
+        columns:
+          - name: date_key
+            tests: [unique, not_null]
+
+
+# =============================================================================
+# Staging Models
+# =============================================================================
+models:
+  - name: stg_clients
+    description: "Staged and lightly cleaned client records."
+    columns:
+      - name: client_key
+        description: "Surrogate PK"
+        tests: [unique, not_null]
+      - name: client_id
+        description: "Business key from source system"
+        tests: [unique, not_null]
+      - name: email
+        tests:
+          - not_null
+          - unique
+      - name: gender
+        tests:
+          - accepted_values:
+              values: ['M', 'F', 'O']
+              quote: true
+
+  - name: stg_lapses
+    description: "Staged lapse events."
+    columns:
+      - name: lapse_id
+        tests: [unique, not_null]
+      - name: client_key
+        tests: [not_null]
+      - name: product_key
+        tests: [not_null]
+      - name: lapse_status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LAPSED', 'REINSTATED', 'CANCELLED', 'PENDING']
+
+  - name: stg_products
+    description: "Staged product catalogue."
+    columns:
+      - name: product_key
+        tests: [unique, not_null]
+      - name: product_code
+        tests: [unique, not_null]
+      - name: product_name
+        tests: [not_null]
+
+# =============================================================================
+# Mart Models
+# =============================================================================
+  - name: dim_patients
+    description: >
+      Patient (client) dimension enriched with derived demographics.
+      One row per patient. Materialized as TABLE.
+    columns:
+      - name: client_key
+        description: "Surrogate PK – unique per patient"
+        tests: [unique, not_null]
+      - name: client_id
+        description: "Business key – unique per patient"
+        tests: [unique, not_null]
+      - name: full_name
+        tests: [not_null]
+      - name: age
+        description: "Derived from date_of_birth at model build time"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 120
+      - name: age_band
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Minor', '18-34', '35-49', '50-64', '65+']
+      - name: income_band
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Low', 'Middle', 'Upper-Middle', 'High']
+      - name: gender
+        tests:
+          - accepted_values:
+              values: ['M', 'F', 'O']
+
+  - name: fct_patient_claims_summary
+    description: >
+      One row per patient summarising all their lapse activity.
+      Includes volume, financial, and reinstatement metrics.
+    columns:
+      - name: client_key
+        description: "PK – joins to dim_patients"
+        tests: [unique, not_null]
+      - name: client_id
+        tests: [unique, not_null]
+      - name: total_lapses
+        description: "Total historical lapses (0 = never lapsed)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: active_lapses
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: reinstatement_rate_pct
+        description: "Percentage of lapses that were reinstated (NULL when no lapses)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+              where: "reinstatement_rate_pct IS NOT NULL"
+      - name: lapse_segment
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['No Lapse', 'Fully Reinstated', 'Active Lapse', 'Mixed']

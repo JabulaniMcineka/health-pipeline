@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL – target database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: health_postgres
+    environment:
+      POSTGRES_DB:       health_db
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Auto-run DDL on first start
+      - ./sql/ddl:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # dbt runner
+  # ---------------------------------------------------------------------------
+  dbt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: health_dbt
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST:     postgres
+      DB_PORT:     "5432"
+      DB_USER:     postgres
+      DB_PASSWORD: postgres
+      DB_NAME:     health_db
+    volumes:
+      - ./dbt:/app/dbt
+      - ./scripts:/app/scripts
+    # Run cleaning script, then dbt pipeline
+    command: >
+      sh -c "
+        python scripts/clean_health_products.py &&
+        cd dbt &&
+        dbt deps &&
+        dbt seed --full-refresh &&
+        dbt run &&
+        dbt test
+      "
+
+  # ---------------------------------------------------------------------------
+  # Data loader: ingest CSVs into PostgreSQL
+  # ---------------------------------------------------------------------------
+  loader:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: health_loader
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST:     postgres
+      DB_PORT:     "5432"
+      DB_USER:     postgres
+      DB_PASSWORD: postgres
+      DB_NAME:     health_db
+    command: python scripts/load_data.py
+    profiles:
+      - load   # only run with: docker compose --profile load up
+
+volumes:
+  postgres_data:

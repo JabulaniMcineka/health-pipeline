@@ -1,0 +1,103 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# Poetry
+poetry.lock
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+nosetests.xml
+test-results/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/.user.yml
+
+# AWS credentials – NEVER commit these
+.aws/
+*.pem
+*.key
+credentials
+aws_credentials.env
+
+# Environment variable files
+.env
+.env.*
+*.env
+!.env.example
+
+# Docker
+.dockerignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Data files – raw source data not tracked in git
+data_files/*.parquet
+data_files/*.csv
+data_files/*.sha256
+!data_files/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Terraform (if added later)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+lambda_layer/
+lambda_package/
+lambda_package.zip
+lambda_layer.zip
+handler_only.zip

@@ -1,0 +1,5 @@
+# Raw data files are excluded from version control via .gitignore.
+# Place the following files here before running the pipeline:
+#   - clients.csv
+#   - health_lapses.parquet
+#   - health_products.txt
