@@ -1,0 +1,6 @@
+--- CONFIDENTIAL: INTERNAL ALIGND EXPORT 2025-05-01 ---
+prod_001|Hospital Plan|Tier 1|Active
+PROD_002|Dental Cover|Tier 2|Active
+prod_003|Full Medical|Tier 3|Inactive
+prod_004|Gap Cover|Tier 1|Active
+PROD_005|Primary Care|Tier 2|Active
