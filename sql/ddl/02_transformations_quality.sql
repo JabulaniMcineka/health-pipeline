@@ -113,7 +113,7 @@ imputed AS (
     SELECT
         c.client_key,
         COALESCE(
-            CASE WHEN pm.n >= 30 THEN pm.median_income END,
+            CASE WHEN pm.n >= 2 THEN pm.median_income END,
             nm.median_income
         ) AS imputed_income
     FROM health.dim_clients c
