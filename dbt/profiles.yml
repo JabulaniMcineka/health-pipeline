@@ -1,23 +1,12 @@
-health_pipeline:
+﻿health_pipeline:
   target: dev
   outputs:
     dev:
       type: postgres
-      host: "{{ env_var('DB_HOST', 'postgres') }}"
-      port: "{{ env_var('DB_PORT', '5432') | int }}"
-      user: "{{ env_var('DB_USER', 'postgres') }}"
-      password: "{{ env_var('DB_PASSWORD', 'postgres') }}"
-      dbname: "{{ env_var('DB_NAME', 'health_db') }}"
+      host: localhost
+      port: 5433
+      user: postgres
+      password: postgres
+      dbname: health_db
       schema: dbt_dev
       threads: 4
-      keepalives_idle: 0
-    prod:
-      type: postgres
-      host: "{{ env_var('DB_HOST') }}"
-      port: "{{ env_var('DB_PORT', '5432') | int }}"
-      user: "{{ env_var('DB_USER') }}"
-      password: "{{ env_var('DB_PASSWORD') }}"
-      dbname: "{{ env_var('DB_NAME', 'health_db') }}"
-      schema: dbt_prod
-      threads: 8
-      keepalives_idle: 0
