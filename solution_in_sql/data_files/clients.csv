@@ -1,0 +1,10 @@
+client_id,name,income,province
+1,John Doe,50000.0,Gauteng
+2,Jane Smith,62000.0,Western Cape
+3,Bob Hill,,Gauteng
+4,Alice Vane,45000.0,KZN
+4,Alice Vane,45000.0,KZN
+5,Charlie Day,,Western Cape
+6,Eve Night,71000.0,Gauteng
+7,Frank Forest,55000.0,Western Cape
+8,Grace Garden,,KZN

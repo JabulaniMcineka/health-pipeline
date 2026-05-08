@@ -1,0 +1,6 @@
+product_code,product_name,product_category,product_type
+PROD_001,Hospital Plan,Tier 1,Active
+PROD_002,Dental Cover,Tier 2,Active
+PROD_003,Full Medical,Tier 3,Inactive
+PROD_004,Gap Cover,Tier 1,Active
+PROD_005,Primary Care,Tier 2,Active
